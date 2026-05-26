@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChocoDistro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      ChocoDistro
+    </div>
+    <button class="nb on" onclick="nav('dash', this)"><i class="ti ti-home"></i> Dashboard</button>
+    <button class="nb" onclick="nav('shops', this)"><i class="ti ti-building-store"></i> Shops</button>
+    <button class="nb" onclick="nav('orders', this)"><i class="ti ti-package"></i> Orders</button>
+    <button class="nb" onclick="nav('payments', this)"><i class="ti ti-cash"></i> Payments</button>
+    <button class="nb" onclick="nav('profit', this)"><i class="ti ti-chart-bar"></i> Profit</button>
+    <button class="nb" onclick="nav('products', this)"><i class="ti ti-candy"></i> Products</button>
+  </div>
+
+  <!-- ======= DASHBOARD ======= -->
+  <div id="dash" class="pg on">
+    <div class="metrics" id="dash-metrics"></div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-alert-circle" style="color:#BA7517"></i> Shops to visit soon</div>
+      <div id="visit-table"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-clock"></i> Recent orders</div>
+      <div id="recent-orders"></div>
+    </div>
+  </div>
+
+  <!-- ======= SHOPS ======= -->
+  <div id="shops" class="pg">
+    <div class="fb">
+      <input style="width:220px" placeholder="Search shops..." oninput="renderShops(this.value)" />
+      <button class="btn btnp" onclick="openM('mShop', null)"><i class="ti ti-plus"></i> Add shop</button>
+    </div>
+    <div class="card"><div id="shop-list"></div></div>
+  </div>
+
+  <!-- ======= ORDERS ======= -->
+  <div id="orders" class="pg">
+    <div class="fb">
+      <span class="pg-title">All orders</span>
+      <button class="btn btnp" onclick="openM('mOrder', null)"><i class="ti ti-plus"></i> New order</button>
+    </div>
+    <div class="card"><div id="order-list"></div></div>
+  </div>
+
+  <!-- ======= PAYMENTS ======= -->
+  <div id="payments" class="pg">
+    <div class="fb">
+      <span class="pg-title">Payments</span>
+      <button class="btn btnp" onclick="openM('mPay', null)"><i class="ti ti-plus"></i> Record payment</button>
+    </div>
+    <div class="metrics" id="pay-metrics" style="margin-bottom:12px"></div>
+    <div class="card"><div id="pay-list"></div></div>
+  </div>
+
+  <!-- ======= PROFIT ======= -->
+  <div id="profit" class="pg">
+    <div class="metrics" id="profit-metrics" style="margin-bottom:4px"></div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-chart-bar"></i> Profit per shop</div>
+      <div id="profit-shops"></div>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="ti ti-candy"></i> Profit per product</div>
+      <div id="profit-products"></div>
+    </div>
+  </div>
+
+  <!-- ======= PRODUCTS ======= -->
+  <div id="products" class="pg">
+    <div class="fb">
+      <span class="pg-title">Products & inventory</span>
+      <button class="btn btnp" onclick="openM('mProd', null)"><i class="ti ti-plus"></i> Add product</button>
+    </div>
+    <div class="card"><div id="prod-list"></div></div>
+  </div>
+
+  <!-- ======= MODALS ======= -->
+
+  <!-- Add / Edit Shop -->
+  <div class="overlay" id="mShop">
+    <div class="modal">
+      <div class="mh"><i class="ti ti-building-store"></i> <span id="mShop-title">Add shop</span></div>
+      <input type="hidden" id="s-id" />
+      <div class="fr2">
+        <div class="fg"><label>Shop name</label><input id="s-name" placeholder="Sweet Corner" /></div>
+        <div class="fg"><label>City</label><input id="s-city" placeholder="Los Angeles" /></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label>Contact name</label><input id="s-contact" placeholder="Mike" /></div>
+        <div class="fg"><label>Phone</label><input id="s-phone" placeholder="(310) 555-0000" /></div>
+      </div>
+      <div class="fg"><label>Address</label><input id="s-addr" placeholder="123 Main St, LA CA 90001" /></div>
+      <div class="fg"><label>Notes</label><textarea id="s-notes" rows="2" placeholder="Any notes..."></textarea></div>
+      <div class="mf">
+        <button class="btn" onclick="closeM('mShop')">Cancel</button>
+        <button class="btn btnp" onclick="saveShop()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Order -->
+  <div class="overlay" id="mOrder">
+    <div class="modal">
+      <div class="mh"><i class="ti ti-package"></i> <span id="mOrder-title">New order</span></div>
+      <input type="hidden" id="o-id" />
+      <div class="fr2">
+        <div class="fg"><label>Shop</label><select id="o-shop"></select></div>
+        <div class="fg"><label>Date</label><input type="date" id="o-date" /></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label>Product</label><select id="o-prod" onchange="calcOrderTotal()"></select></div>
+        <div class="fg"><label>Quantity</label><input type="number" id="o-qty" placeholder="0" min="1" oninput="calcOrderTotal()" /></div>
+      </div>
+      <div class="fg"><label>Unit sell price ($)</label><input type="number" id="o-price" placeholder="0.00" step="0.01" oninput="calcOrderTotal()" /></div>
+      <div class="fg"><label>Total</label><input id="o-total" readonly style="background:var(--bg2)" /></div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="o-status">
+          <option value="unpaid">Unpaid</option>
+          <option value="partial">Partial</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="fg"><label>Notes</label><input id="o-notes" placeholder="Any notes..." /></div>
+      <div class="mf">
+        <button class="btn" onclick="closeM('mOrder')">Cancel</button>
+        <button class="btn btnp" onclick="saveOrder()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Payment -->
+  <div class="overlay" id="mPay">
+    <div class="modal">
+      <div class="mh"><i class="ti ti-cash"></i> Record payment</div>
+      <div class="fr2">
+        <div class="fg">
+          <label>Type</label>
+          <select id="p-type" onchange="togglePayParty()">
+            <option value="received">Received from shop</option>
+            <option value="sent">Paid to Turkey supplier</option>
+          </select>
+        </div>
+        <div class="fg"><label>Amount ($)</label><input type="number" id="p-amt" placeholder="0.00" step="0.01" /></div>
+      </div>
+      <div class="fg" id="p-shop-row"><label>Shop</label><select id="p-shop"></select></div>
+      <div class="fg" id="p-supplier-row" style="display:none"><label>Supplier name</label><input id="p-supplier" placeholder="Ülker Turkey" /></div>
+      <div class="fr2">
+        <div class="fg"><label>Date</label><input type="date" id="p-date" /></div>
+        <div class="fg">
+          <label>Method</label>
+          <select id="p-method">
+            <option>Cash</option>
+            <option>Bank transfer</option>
+            <option>Zelle</option>
+            <option>Check</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Notes</label><input id="p-notes" placeholder="Invoice #, reference..." /></div>
+      <div class="mf">
+        <button class="btn" onclick="closeM('mPay')">Cancel</button>
+        <button class="btn btnp" onclick="savePay()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Product -->
+  <div class="overlay" id="mProd">
+    <div class="modal">
+      <div class="mh"><i class="ti ti-candy"></i> <span id="mProd-title">Add product</span></div>
+      <input type="hidden" id="pr-id" />
+      <div class="fg"><label>Product name</label><input id="pr-name" placeholder="Ülker Dark 70g" /></div>
+      <div class="fr2">
+        <div class="fg"><label>Buy price per unit ($)</label><input type="number" id="pr-buy" placeholder="1.20" step="0.01" /></div>
+        <div class="fg"><label>Suggested sell price ($)</label><input type="number" id="pr-sell" placeholder="2.50" step="0.01" /></div>
+      </div>
+      <div class="fg"><label>Current stock (units)</label><input type="number" id="pr-stock" placeholder="0" min="0" /></div>
+      <div class="fg"><label>Notes</label><input id="pr-notes" placeholder="Brand, origin, weight..." /></div>
+      <div class="mf">
+        <button class="btn" onclick="closeM('mProd')">Cancel</button>
+        <button class="btn btnp" onclick="saveProd()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete -->
+  <div class="overlay" id="mDel">
+    <div class="modal">
+      <div class="mh"><i class="ti ti-trash"></i> Confirm delete</div>
+      <p id="del-msg" style="font-size:13px;color:#888;margin-bottom:14px">Are you sure?</p>
+      <div class="mf">
+        <button class="btn" onclick="closeM('mDel')">Cancel</button>
+        <button class="btn btnd" id="del-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
